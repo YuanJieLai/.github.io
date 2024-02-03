@@ -1,0 +1,10 @@
+bitarray.s
+bitcnt_1.s
+bitcnt_2.s
+bitcnt_3.s
+bitcnt_4.s
+bitcnts.s
+bitfiles.s
+bitstrng.s
+bstr_i.s
+loop-wrap.s
