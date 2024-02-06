@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Dec 14 12:50:26 2021
+
+@author: usr
+"""
+import os, sys
+import random
+import math
+import numpy as np
+import numpy as np
+import time
+import zlib
+import os.path
+random.seed(123)
+initial_set = 1
+begin2end = 5
+iters = 30
+
+cmd1 = ' -o a.out -lm *.o'
+cmd2 = ' -c *.c'
+cmd3 = 'gcc -O2  -o a.out -lm *.o'
+cmd4 = 'rm -rf *.o *.S *.s *.I a.out'
+cmd5 = './__run 1'
+path = '/home/usr/Workspace1/BOCA/cbench/automotive_bitcount'
+
+options = ['-fno-peephole2', '-ffast-math', '-fno-schedule-insns2', '-fno-caller-saves', '-funroll-all-loops', '-fno-inline-small-functions', '-finline-functions', '-fno-math-errno', '-fno-tree-pre', '-ftracer', '-fno-reorder-functions', '-fno-dce', '-fipa-cp-clone', '-fno-move-loop-invariants', '-fno-regmove', '-funsafe-math-optimizations', '-fno-tree-loop-optimize', '-fno-merge-constants', '-fno-omit-frame-pointer', '-fno-align-labels', '-fno-tree-ter', '-fno-tree-dse', '-fwrapv', '-fgcse-after-reload', '-fno-align-jumps', '-fno-asynchronous-unwind-tables', '-fno-cse-follow-jumps', '-fno-ivopts', '-fno-guess-branch-probability', '-fprefetch-loop-arrays', '-fno-tree-coalesce-vars', '-fno-common', '-fpredictive-commoning', '-fno-unit-at-a-time', '-fno-cprop-registers', ' ', '-fno-early-inlining', '-fno-delete-null-pointer-checks', '-fselective-scheduling2', '-fno-gcse', '-fno-inline-functions-called-once', '-funswitch-loops', '-fno-tree-vrp', '-fno-tree-dce', '-fno-jump-tables', '-ftree-vectorize', '-fno-argument-alias', '-fno-schedule-insns', '-fno-branch-count-reg', '-fno-tree-switch-conversion', '-fno-auto-inc-dec', '-fno-crossjumping', '-fno-tree-fre', '-fno-tree-reassoc', '-fno-align-functions', '-fno-defer-pop', '-fno-optimize-register-move', '-fno-strict-aliasing', '-fno-rerun-cse-after-loop', '-fno-tree-ccp', '-fno-ipa-cp', '-fno-if-conversion2', '-fno-tree-sra', '-fno-expensive-optimizations', '-fno-tree-copyrename', '-fno-ipa-reference', '-fno-ipa-pure-const', '-fno-thread-jumps', '-fno-if-conversion', '-fno-reorder-blocks', '-falign-loops']
+
+def generate_opts(independent):
+    result = []
+    for k, s in enumerate(independent):
+        if s == 1:
+            result.append(options[k])
+    independent = result
+
+    return independent
+
+def generate_conf(x):
+    comb = bin(x).replace('0b', '')
+    comb = '0' * (len(options) - len(comb)) + comb
+    conf = []
+    for k, s in enumerate(comb):
+        if s == '1':
+            conf.append(1)
+        else:
+            conf.append(0)
+    return conf
+
+def get_objective_score(independent):
+    independent = generate_opts(independent)
+
+    print(independent)
+    os.chdir(path)
+    os.system(cmd4)
+    print('gcc -O2 ' + ' '.join(independent) + cmd2)
+    os.system('gcc -O2 ' + ' '.join(independent) + cmd2)
+    print('gcc -O2 ' + ' '.join(independent) + cmd1)
+    os.system('gcc -O2 ' + ' '.join(independent) + cmd1)
+    begin = time.time()
+    ret = os.system(cmd5)
+    
+    end = time.time()
+    de = end - begin
+    
+
+    
+    return de
+
+def get_objective_CRC(independent):
+    independent = generate_opts(independent)
+    os.chdir(path)
+    os.system(cmd4)
+    print('gcc -S -O2 ' + ' '.join(independent) + ' *.c')
+    os.system('gcc -S -O2 ' + ' '.join(independent) + ' *.c')
+    os.system('ls *.s >ftmp.ls')
+    f1=open(r'{path_}/ftmp.ls'.format(path_=path))
+   
+
+
+
+
+
+    stotalCRC=0
+    for s in f1.readlines():
+        print(s,end="")
+        s=s.strip()
+        if os.path.isfile(s):
+            fp=open(s,'rb')
+            contents=fp.read()
+            fp.close()
+            filecrc=zlib.crc32(contents)
+            stotalCRC=stotalCRC+filecrc
+
+    return stotalCRC
+
+
+# CRC测试的  
+if __name__ == '__main__':
+    stats = []
+    times = []
+    geneinfo = []
+    
+    
+    # for i in range(initial_set):
+    #     x = random.randint(0, 2 ** len(options))
+    #     geneinfo.append(generate_conf(x))
+    # print(geneinfo)
+    
+    # for x in geneinfo:
+    #     tmp = get_objective_score(x)
+    #     print("time X="+str(tmp))
+    # for x in geneinfo:
+    #     xCRC=get_objective_CRC(x)
+    #     print(xCRC)
+    CRClist=[]
+    xc=[]
+    for i in range(len(options)):
+        xc.append(1)
+    iniCRC=get_objective_CRC(xc)
+    
+    
+    seq_list=[]
+    for i in range(len(options)):
+        xc[i]=0
+        tempx=[]
+        for j in xc:
+            tempx.append(j)
+        tempCRC=get_objective_CRC(xc)
+        seq_list.append(tempx)
+        CRClist.append(tempCRC)
+    print("************Test 1**********")
+    print("iniCRC=",iniCRC)
+    for i in range(len(CRClist)):
+        print("tempseq=",seq_list[i])
+        print("tempCRC=",CRClist[i])
+        if CRClist[i]==iniCRC:
+            print("************has equal**********")
+    
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
